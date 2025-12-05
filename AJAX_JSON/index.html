@@ -1,0 +1,333 @@
+<!-- Sir pa run nalang po "php -S localhost:8000" sa Terminal -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: #0d0d0d;
+      color: #eaeaea;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      max-width: 600px;
+      width: 100%;
+      padding: 30px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+
+    /* Profile logo */
+    .profile {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+    }
+
+    .profile img {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #333;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+      transition: transform 0.2s ease;
+    }
+
+    .profile img:hover {
+      transform: scale(1.05);
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 25px;
+    }
+
+    button {
+      background: #fff;
+      color: #000;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+      margin-bottom: 20px;
+    }
+
+    button:hover {
+      background: #ccc;
+    }
+
+    button:disabled {
+      background: #444;
+      color: #888;
+      cursor: not-allowed;
+    }
+
+    #taskList {
+      list-style: none;
+    }
+
+    .task-item {
+      background: #222;
+      border: 1px solid #333;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      animation: fadeIn 0.3s ease;
+      text-align: left;
+    }
+
+    .task-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 3px 10px rgba(255, 255, 255, 0.05);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .task-id {
+      font-weight: 600;
+      color: #fff;
+      margin-right: 8px;
+    }
+
+    .task-description {
+      color: #ddd;
+    }
+
+    /* Only priority label is color coded */
+    .task-priority {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 3px 10px;
+      margin-top: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .priority-high {
+      background: rgba(255, 59, 59, 0.1);
+      color: #ff4d4d;
+      border: 1px solid #ff4d4d;
+    }
+
+    .priority-medium {
+      background: rgba(255, 214, 10, 0.1);
+      color: #ffd60a;
+      border: 1px solid #ffd60a;
+    }
+
+    .priority-low {
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+      border: 1px solid #3b82f6;
+    }
+
+    .loading,
+    .empty,
+    .error {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: #bbb;
+    }
+
+    .error {
+      background: rgba(255, 59, 59, 0.1);
+      border: 1px solid #ff4d4d;
+      color: #ff4d4d;
+    }
+
+    .stats {
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .stats.show {
+      display: block;
+    }
+
+    .stats-title {
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      text-align: center;
+    }
+
+    .stat-item {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 10px;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="profile">
+     
+      <img src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/518384132_24187565717561111_4206007168097896589_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=g7ptzHj7rg0Q7kNvwFnTOWI&_nc_oc=AdnPv5DKS-O0rlDQ07gWGpJbEO9oLu92QrUThusvQ8cfDg7JPM2Wtr60xQzX345eadw&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=9tmTkB4KkPsUDpWDqCuH5A&oh=00_AfcQKaiALUplEkXSCR96wG20XlbbuHCboWq1aRaN5m3Ehw&oe=68FC0418" alt="User Profile Picture">
+    </div>
+
+    <h1>Task Manager</h1>
+    <p class="subtitle">Welcome back, Admin. <br>Manage your tasks efficiently.</p>
+
+    <button id="fetchBtn" onclick="fetchTasks()">Fetch Tasks</button>
+
+    <div id="stats" class="stats">
+      <div class="stats-title">Task Statistics</div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value" id="totalTasks">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="highPriority">0</div>
+          <div class="stat-label">High</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="mediumPriority">0</div>
+          <div class="stat-label">Medium</div>
+        </div>
+      </div>
+    </div>
+
+    <ul id="taskList"></ul>
+  </div>
+
+  <script>
+    function fetchTasks() {
+      const taskList = document.getElementById('taskList');
+      const fetchBtn = document.getElementById('fetchBtn');
+      const statsDiv = document.getElementById('stats');
+
+      taskList.innerHTML = '<li class="loading">Loading tasks...</li>';
+      fetchBtn.disabled = true;
+      fetchBtn.textContent = 'Loading...';
+      statsDiv.classList.remove('show');
+
+      fetch('tasks.php')
+        .then(response => {
+          if (!response.ok) throw new Error('Network response was not ok');
+          return response.json();
+        })
+        .then(data => {
+          displayTasks(data);
+          updateStats(data);
+        })
+        .catch(error => {
+          taskList.innerHTML = `<li class="error">Error fetching tasks: ${error.message}<br><br>Ensure <code>tasks.php</code> is in the same directory and your server is running.</li>`;
+        })
+        .finally(() => {
+          fetchBtn.disabled = false;
+          fetchBtn.textContent = 'Fetch Tasks';
+        });
+    }
+
+    function displayTasks(tasks) {
+      const taskList = document.getElementById('taskList');
+
+      if (tasks.length === 0) {
+        taskList.innerHTML = '<li class="empty">No tasks found.</li>';
+        return;
+      }
+
+      taskList.innerHTML = '';
+
+      tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.className = `task-item`;
+        li.style.animationDelay = `${index * 0.05}s`;
+
+        li.innerHTML = `
+          <div>
+            <span class="task-id">#${task.id}</span>
+            <span class="task-description">${task.description}</span>
+          </div>
+          <span class="task-priority priority-${task.priority.toLowerCase()}">
+            ${task.priority.toUpperCase()}
+          </span>
+        `;
+
+        taskList.appendChild(li);
+      });
+    }
+
+    function updateStats(tasks) {
+      const statsDiv = document.getElementById('stats');
+      const total = tasks.length;
+      const high = tasks.filter(t => t.priority.toLowerCase() === 'high').length;
+      const medium = tasks.filter(t => t.priority.toLowerCase() === 'medium').length;
+
+      document.getElementById('totalTasks').textContent = total;
+      document.getElementById('highPriority').textContent = high;
+      document.getElementById('mediumPriority').textContent = medium;
+
+      if (total > 0) {
+        statsDiv.classList.add('show');
+      }
+    }
+  </script>
+</body>
+</html>
